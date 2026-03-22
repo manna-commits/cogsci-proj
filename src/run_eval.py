@@ -18,12 +18,20 @@ VALID_ENDORSE = {-1, 0, 1}
 
 
 def free_local_models() -> List[Dict]:
-    """Free local model defaults via Ollama + mock fallback."""
     return [
         {"name": "mock-balanced", "provider": "mock", "temperature": 0.0},
         {"name": "llama3.2:3b", "provider": "ollama", "temperature": 0.1},
         {"name": "phi3:mini", "provider": "ollama", "temperature": 0.1},
-        {"name": "gemma2:2b", "provider": "ollama", "temperature": 0.1},
+    ]
+
+
+def mixed_four_models() -> List[Dict]:
+    """At most 4 models: 2 GPT + 2 free local."""
+    return [
+        {"name": "gpt-4o-mini", "provider": "openai", "temperature": 0.1},
+        {"name": "gpt-4.1-mini", "provider": "openai", "temperature": 0.1},
+        {"name": "llama3.2:3b", "provider": "ollama", "temperature": 0.1},
+        {"name": "phi3:mini", "provider": "ollama", "temperature": 0.1},
     ]
 
 
@@ -53,12 +61,12 @@ def validate_output(d: Dict) -> Dict:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--models", type=Path, default=None)
-    p.add_argument("--model-preset", choices=["free_local"], default="free_local")
+    p.add_argument("--model-preset", choices=["free_local", "mixed_4"], default="mixed_4")
     p.add_argument("--policies", type=Path, required=True)
     p.add_argument("--scenarios", type=Path, required=True)
     p.add_argument("--output", type=Path, default=Path("outputs"))
     p.add_argument("--max-scenarios", type=int, default=None)
-    p.add_argument("--continue-on-error", action="store_true", default=True)
+    p.add_argument("--fail-fast", action="store_true", help="Stop on first model error")
     return p.parse_args()
 
 
@@ -70,6 +78,8 @@ def load_models(args: argparse.Namespace) -> List[Dict]:
 
     if args.model_preset == "free_local":
         return free_local_models()
+    if args.model_preset == "mixed_4":
+        return mixed_four_models()
 
     raise ValueError(f"Unknown model preset: {args.model_preset}")
 
@@ -106,10 +116,10 @@ def main() -> None:
             try:
                 adapter = make_adapter(model)
             except Exception as e:
-                if args.continue_on_error:
-                    skipped_models[model_key] = f"adapter_init_error: {e}"
-                    continue
-                raise
+                if args.fail_fast:
+                    raise
+                skipped_models[model_key] = f"adapter_init_error: {e}"
+                continue
 
             for scenario in scenarios:
                 for policy_name, policy_text in policies.items():
@@ -120,10 +130,10 @@ def main() -> None:
                         try:
                             out = validate_output(adapter.complete(prompt))
                         except Exception as e:
-                            if args.continue_on_error:
-                                skipped_models[model_key] = f"runtime_error: {e}"
-                                break
-                            raise
+                            if args.fail_fast:
+                                raise
+                            skipped_models[model_key] = f"runtime_error: {e}"
+                            break
 
                         row = {
                             "scenario_id": scenario["scenario_id"],

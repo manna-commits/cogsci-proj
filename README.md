@@ -17,36 +17,53 @@ This repository contains a complete, automated pipeline for evaluating how diffe
   - mean endorsement,
   - repair action rate.
 
-## Simple run (your request)
+## Your exact request (GPT + free, max 4)
 
-If you want one command with multiple **free** models (local via Ollama), run:
+Run this one command:
+
+```bash
+bash scripts/run_mixed_4_models.sh
+```
+
+This uses `mixed_4` preset (exactly 4 models):
+1. `gpt-4o-mini` (OpenAI)
+2. `gpt-4.1-mini` (OpenAI)
+3. `llama3.2:3b` (Ollama, free local)
+4. `phi3:mini` (Ollama, free local)
+
+If a model is unavailable (missing `OPENAI_API_KEY`, Ollama not running, model not pulled), the runner skips it and continues. Skip reasons are written to `skipped_models.jsonl`.
+
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+For GPT models:
+
+```bash
+export OPENAI_API_KEY="your_key_here"
+```
+
+For free local models (optional but recommended):
+
+```bash
+ollama pull llama3.2:3b
+ollama pull phi3:mini
+```
+
+## Alternative runs
+
+Only free local models:
 
 ```bash
 bash scripts/run_free_models.sh
 ```
 
-That command uses preset `free_local` with:
-- `mock-balanced` (always available),
-- `llama3.2:3b` (Ollama),
-- `phi3:mini` (Ollama),
-- `gemma2:2b` (Ollama).
-
-If Ollama is not installed or some models are missing, the runner will skip failing models and continue, writing `skipped_models.jsonl`.
-
-## Quick start
+Custom model list from file:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-
-# Option A: use preset free local models
-python -m src.run_eval \
-  --model-preset free_local \
-  --policies configs/policies.json \
-  --scenarios data/scenarios.jsonl \
-  --output outputs
-
-# Option B: use explicit model file
 python -m src.run_eval \
   --models configs/models.json \
   --policies configs/policies.json \
@@ -76,11 +93,3 @@ The model is instructed to return strict JSON:
   "response_text": "..."
 }
 ```
-
-## Research alignment
-
-This setup directly supports your project goals:
-
-- compare **human vs model drift points**,
-- estimate policy effect of **repair-first**,
-- quantify inappropriate endorsement under sustained sarcasm.
