@@ -1,0 +1,19 @@
+{
+  "models": [
+    {
+      "name": "mock-balanced",
+      "provider": "mock",
+      "temperature": 0.0
+    },
+    {
+      "name": "llama3.2:3b",
+      "provider": "ollama",
+      "temperature": 0.1
+    },
+    {
+      "name": "phi3:mini",
+      "provider": "ollama",
+      "temperature": 0.1
+    }
+  ]
+}
