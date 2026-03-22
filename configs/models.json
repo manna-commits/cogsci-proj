@@ -1,0 +1,24 @@
+{
+  "models": [
+    {
+      "name": "gpt-4o-mini",
+      "provider": "openai",
+      "temperature": 0.1
+    },
+    {
+      "name": "gpt-4.1-mini",
+      "provider": "openai",
+      "temperature": 0.1
+    },
+    {
+      "name": "llama3.2:3b",
+      "provider": "ollama",
+      "temperature": 0.1
+    },
+    {
+      "name": "phi3:mini",
+      "provider": "ollama",
+      "temperature": 0.1
+    }
+  ]
+}
