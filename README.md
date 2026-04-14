@@ -2,6 +2,8 @@
 
 A cognitive science-inspired evaluation framework for testing when LLM assistants begin treating repeated sarcastic statements as genuine user preference, and whether a repair-first dialogue policy reduces that drift.
 
+---
+
 ## Overview
 
 This project studies a specific dialogue failure mode in LLM assistants: when a user repeatedly describes a negative situation in positive language, the assistant may gradually reinterpret that pattern as a sincere preference and begin endorsing something the user does not actually want.
@@ -15,27 +17,36 @@ The framework evaluates that behavior across:
   - **Repair-First**
 
 The main goal is to measure:
-- **drift point**: when the assistant begins acting as if the sarcastic framing is sincere
-- **endorsement**: how much the assistant encourages or supports the implied preference
-- **repair behavior**: how often the assistant clarifies or paraphrase-confirms under ambiguity
+- **drift point** — when the assistant begins acting as if the sarcastic framing is sincere  
+- **endorsement** — how much the assistant encourages or supports the implied preference  
+- **repair behavior** — how often the assistant clarifies or paraphrase-confirms under ambiguity  
+
+---
 
 ## Research Question
 
 In multi-turn sarcastic interactions, when do LLM assistants begin treating repeated sarcastic statements as evidence of genuine user preference, and does a repair-first dialogue policy reduce that premature commitment and its downstream endorsement behavior?
 
+---
+
 ## Why This Project Matters
 
 Sarcasm is a useful test of pragmatic understanding because the literal wording often does not match the speaker’s intended meaning. In real conversations, people use context, common ground, and conversational repair to handle that ambiguity. AI assistants, however, may commit too early to one interpretation and then act on it.
 
-That matters even more as personal AI assistants become more common. A system that misreads sarcasm may not just give one bad response. It may start making the wrong suggestions, storing the wrong memories, or adapting to a user preference the user never actually expressed.
+That matters even more as personal AI assistants become more common. A system that misreads sarcasm may not just give one incorrect response. It may:
+- make incorrect recommendations  
+- store incorrect preferences  
+- adapt to a user profile that was never actually intended  
 
 This issue is especially relevant for:
-- personal assistants with memory or personalization
-- local or on-device assistants
-- smaller models that may not have the same pragmatic robustness as stronger frontier models
-- privacy-preserving systems where the assistant may retain information locally over time
+- assistants with memory or personalization  
+- local or on-device AI systems  
+- smaller models with limited reasoning capacity  
+- privacy-preserving systems that retain user context over time  
 
-A simple repair-oriented policy may be one of the most practical ways to reduce that risk.
+A simple repair-oriented policy may be one of the most practical ways to reduce this risk.
+
+---
 
 ## Repository Structure
 
@@ -44,83 +55,94 @@ A simple repair-oriented policy may be one of the most practical ways to reduce 
 ├── scenarios/              # Scenario definitions and persistence variants
 ├── prompts/                # Prompt templates for baseline and repair-first conditions
 ├── outputs/                # Raw model outputs and structured JSON results
-├── analysis/               # Analysis scripts for drift, endorsement, and repair metrics
-├── figures/                # Exported charts used in the final paper
-├── human_eval/             # Lightweight human evaluation materials and summaries
+├── analysis/               # Scripts for drift, endorsement, and repair metrics
+├── figures/                # Charts used in the final paper
+├── human_eval/             # Human evaluation materials and summaries
 └── README.md
-Core Components
-1. Scenario Set
 
-The evaluation uses a set of everyday negative events that can plausibly be framed sarcastically, such as:
+## Core Components
 
-technical failures
-travel delays
-workload complaints
-service breakdowns
+### 1. Scenario Set
+The evaluation uses everyday negative situations that can plausibly be framed sarcastically, such as:
+- Technical failures
+- Travel delays
+- Workload complaints
+- Service breakdowns
 
-Each base scenario includes:
+Each scenario includes:
+- A low-persistence version
+- A high-persistence version
 
-a low-persistence version
-a high-persistence version
-2. Policy Conditions
-
+### 2. Policy Conditions
 Two dialogue policies are compared:
+- **Baseline Silent Adaptation:** The assistant responds naturally without explicitly addressing ambiguity.
+- **Repair-First:** The assistant prioritizes clarification or paraphrase-confirmation before endorsing or acting on uncertain intent.
 
-- Baseline Silent Adaptation: The assistant responds naturally without any explicit instruction to repair ambiguity.
-- Repair-First: The assistant is instructed to clarify or paraphrase-confirm when user intent is uncertain before endorsing or acting on the implied preference.
+### 3. Structured Outputs
+Each model response is logged in structured JSON format, including:
+- `inferred_intent`
+- `action_type`
+- `endorsement_level`
+- `assistant_response`
 
-3. Structured Outputs
+These outputs are used to derive the evaluation metrics.
 
-Each model response is logged in structured JSON format, including fields such as:
-
-- inferred_intent
-- action_type
-- endorsement_level
-- assistant_response
-
-These fields are then used to derive the main evaluation measures.
-
-4. Analysis
-
+### 4. Analysis
 The analysis pipeline computes:
+- Drift point by run
+- Endorsement averages
+- Repair-action rates
+- Comparisons across policies and models
+- Model-specific behavioral differences
 
-- drift point by run
-- endorsement averages
-- repair-action rates
-- policy comparisons across models and scenarios
-- model-specific behavioral differences
-- Models Evaluated
+---
 
-This framework was run across multiple LLMs, including:
+## Models Evaluated
+This framework was tested across multiple LLMs:
+- `gpt-4.1-mini`
+- `gpt-4o-mini`
+- `llama3.2:3b`
+- `phi3:mini`
 
-- gpt-4.1-mini
-- gpt-4o-mini
-- llama3.2:3b
-- phi3:mini
-- Main Finding
+---
 
-The strongest result from the project was behavioral: the repair-first policy substantially reduced inappropriate endorsement and often delayed or prevented pragmatic drift, though the size and form of the effect varied by model.
+## Main Finding
+The strongest result is behavioral: the repair-first policy consistently reduces inappropriate endorsement and often delays or prevents pragmatic drift. The effect varies by model, but the direction is consistent across conditions.
 
-Human Evaluation
+---
 
-A lightweight follow-up human evaluation was also conducted using a small set of representative scenarios. This was used as a directional validation layer rather than a full human baseline.
+## Human Evaluation
+A lightweight human evaluation was conducted using representative scenarios. This was used as a directional validation layer rather than a full human baseline. Participants generally preferred responses that avoided premature assumptions, even when they did not always agree on the exact best next action.
 
-AI Disclosure
+---
 
-The core research design, evaluation logic, architecture, scenario construction, and prompt engineering in this repository are original to the author. ChatGPT was used as an AI coding assistant to help draft standard boilerplate code, troubleshoot execution issues, and format structured JSON output schemas. Any AI-assisted code was reviewed carefully, revised where necessary, and validated by the author before use.
+## AI Disclosure
+The core research design, evaluation logic, architecture, scenario construction, and prompt engineering in this repository are original to the author. ChatGPT was used as an AI coding assistant to:
+- Draft standard boilerplate code
+- Debug execution scripts
+- Format structured JSON output schemas
 
-Limitations
+All AI-assisted code was reviewed, modified as needed, and validated by the author before execution.
 
-This repository supports a course project rather than a production system. The human evaluation is small, the scenario set is limited, and the main LLM measures are behavioral proxies rather than direct measures of internal model representation.
+---
 
-Future Directions
+## Limitations
+This repository supports a course project rather than a production system. Key limitations include:
+- Small human evaluation sample
+- Limited scenario set
+- Behavioral metrics rather than internal model analysis
 
-Possible extensions include:
+---
 
-- larger human evaluation studies
-- adaptive repair policies instead of fixed prompt rules
-- broader pragmatic phenomena beyond sarcasm
-- testing smaller on-device or local assistant models
-- separating generation and evaluation more cleanly with external annotation
+## Future Directions
+Potential extensions include:
+- Larger human evaluation studies
+- Adaptive (not fixed) repair policies
+- Expanding beyond sarcasm to other pragmatic phenomena
+- Testing smaller or on-device assistant models
+- Separating generation and evaluation more cleanly
 
-Author: Vincent Manna
+---
+
+## Author
+Vincent Manna
